@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TecnoVision — Demo completo (Login, Catálogo, Asistente AI, Pago y Contacto)</title>
+  <style>
+    :root{
+      --blue:#1e90ff;
+      --bg:#071428;
+      --muted:#6b7280;
+      --card-bg:#ffffff;
+      --badge-new:#10b981;
+      --badge-restock:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg,var(--bg) 0%, #0f2a44 60%);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    /* Layout */
+    .wrap{
+      width:100%;
+      max-width:1200px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      padding:22px;
+      box-shadow: 0 12px 40px rgba(2,6,23,0.6);
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:22px;
+      align-items:start;
+    }
+
+    /* Left panel (login / profile) */
+    .panel{background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:22px;color:#fff;border:1px solid rgba(255,255,255,0.03);min-height:520px}
+    .brand{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--blue),#005bb5);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:22px;box-shadow:0 8px 26px rgba(30,144,255,0.18)}
+    label{display:block;font-size:13px;color:rgba(255,255,255,0.9);margin-bottom:6px}
+    input[type="text"], input[type="password"], input[type="email"], textarea{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background: rgba(255,255,255,0.03);color:#fff;margin-bottom:10px}
+    textarea{min-height:100px;resize:vertical}
+    .actions{display:flex;gap:10px;margin-top:8px}
+    .btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+    .btn-primary{background:linear-gradient(90deg,var(--blue),#005bb5);color:#fff}
+    .btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.08)}
+    .small{font-size:13px;color:rgba(255,255,255,0.75);margin-top:10px}
+    .msg{padding:10px;border-radius:8px;margin-top:10px;font-size:14px}
+    .msg.success{background:rgba(16,185,129,0.12);color:#10b981}
+    .msg.error{background:rgba(239,68,68,0.08);color:#ef4444}
+
+    /* Right panel (catalog / pages) */
+    .content{padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);min-height:520px;display:flex;flex-direction:column;gap:12px}
+
+    /* Navbar */
+    .site-nav{background:#0b3b66;color:#fff;border-radius:8px;padding:8px 12px;margin-bottom:6px;box-shadow:0 6px 18px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .nav-list{list-style:none;margin:0;padding:0;display:flex;gap:12px;align-items:center}
+    .nav-list a{color:#fff;text-decoration:none;font-weight:700;padding:8px 10px;border-radius:6px;transition:background .12s;cursor:pointer}
+    .nav-list a:hover{background:rgba(255,255,255,0.06)}
+    .nav-search{padding:8px 10px;border-radius:8px;border:none;min-width:200px;background:rgba(255,255,255,0.06);color:#fff}
+
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .controls{display:flex;gap:10px;align-items:center}
+
+    .grid{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px}
+    .card{width:220px;background:var(--card-bg);color:#111;border-radius:10px;padding:12px;box-shadow:0 10px 30px rgba(2,6,23,0.12);text-align:center;cursor:pointer;position:relative}
+    .card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(2,6,23,0.18)}
+    .card img{width:100%;height:140px;object-fit:cover;border-radius:8px}
+    .card h3{margin:10px 0 6px 0;color:var(--blue);font-size:16px}
+    .card p{margin:6px 0;font-size:14px}
+    .price{font-weight:800;color:#111}
+
+    .badge{position:absolute;left:12px;top:12px;padding:6px 8px;border-radius:999px;color:#fff;font-weight:700;font-size:12px}
+    .badge.new{background:var(--badge-new)}
+    .badge.restock{background:var(--badge-restock)}
+
+    .categories{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .chip{background:rgba(255,255,255,0.03);padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.04);cursor:pointer}
+    .chip.active{background:var(--blue);color:#fff;border-color:rgba(0,0,0,0.08)}
+
+    .extras{margin-top:12px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:rgba(255,255,255,0.9)}
+    .extras h4{margin:0 0 8px 0;color:var(--blue)}
+    .extras ul{margin:0;padding-left:18px;color:rgba(255,255,255,0.85)}
+
+    /* About / Contact */
+    .about-card{background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+    .contact-list{list-style:none;padding:0;margin:8px 0 0 0}
+    .contact-list li{margin-bottom:8px}
+
+    /* Modal */
+    .modal{display:none;position:fixed;z-index:1200;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.6);align-items:center;justify-content:center}
+    .modal.show{display:flex}
+    .modal-content{background:#fff;color:#111;width:92%;max-width:900px;border-radius:12px;padding:18px;display:flex;gap:18px;position:relative;box-shadow:0 20px 60px rgba(2,6,23,0.3)}
+    .modal-left{flex:1;text-align:center}
+    .modal-left img{max-width:100%;border-radius:8px}
+    .modal-right{flex:1}
+    .close{color:#666;position:absolute;right:14px;top:10px;font-size:28px;font-weight:bold;cursor:pointer;background:transparent;border:none}
+    .btn-buy{display:inline-block;padding:10px 16px;background:var(--blue);color:#fff;border-radius:8px;border:none;cursor:pointer;margin-top:12px}
+
+    .restock-form{margin-top:12px;display:flex;gap:8px;align-items:center}
+    .restock-form input{padding:8px;border-radius:8px;border:1px solid #ddd;width:100%}
+
+    /* Assistant widget */
+    #tvAssistantBtn{position:fixed;right:20px;bottom:20px;width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e90ff,#005bb5);color:#fff;border:none;box-shadow:0 10px 30px rgba(0,0,0,0.35);cursor:pointer;font-weight:800;font-size:18px;z-index:2000}
+    #tvAssistantPanel{position:fixed;right:20px;bottom:96px;width:360px;max-width:92%;background:#fff;color:#111;border-radius:12px;box-shadow:0 20px 60px rgba(2,6,23,0.4);display:none;flex-direction:column;overflow:hidden;z-index:2000}
+    #tvAssistantHeader{background:linear-gradient(90deg,#1e90ff,#005bb5);color:#fff;padding:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+    #tvAssistantMessages{padding:12px;height:320px;overflow:auto;background:#f7f9fc;display:flex;flex-direction:column;gap:8px}
+    .tvMsg{max-width:86%;padding:8px 10px;border-radius:10px;font-size:14px}
+    .tvMsg.user{align-self:flex-end;background:#e6f0ff;color:#003a8c}
+    .tvMsg.bot{align-self:flex-start;background:#fff;color:#111;border:1px solid #eee}
+    #tvAssistantInput{display:flex;gap:8px;padding:10px;border-top:1px solid #eee;background:#fff}
+    #tvAssistantInput input{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd}
+    #tvAssistantInput button{padding:10px 12px;border-radius:8px;border:none;background:#1e90ff;color:#fff;cursor:pointer}
+    .tv-suggestion{display:inline-block;padding:6px 8px;border-radius:999px;background:#eef6ff;color:#005bb5;margin:4px 4px 0 0;cursor:pointer;font-size:13px;border:1px solid #d6eaff}
+    .tv-small{font-size:12px;color:#666;margin-top:6px}
+    .tv-quick-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .tv-quick-btn{background:#eef6ff;color:#005bb5;padding:6px 10px;border-radius:999px;border:1px solid #d6eaff;cursor:pointer;font-size:13px}
+
+    /* Payment modal */
+    #paymentModal{display:none;position:fixed;z-index:3000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);align-items:center;justify-content:center}
+    #paymentModal.show{display:flex}
+    .payment-card{background:#fff;color:#111;border-radius:12px;padding:18px;width:420px;max-width:92%;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+    .payment-card h3{margin:0 0 8px 0}
+    .payment-row{display:flex;gap:8px;margin-top:8px}
+    .payment-row input{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd}
+    .payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+    .btn-pay{background:#10b981;color:#fff;padding:10px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn-cancel{background:transparent;border:1px solid #ddd;padding:10px 12px;border-radius:8px;cursor:pointer}
+    .small-muted{font-size:12px;color:#666;margin-top:8px}
+
+    @media (max-width:980px){.wrap{grid-template-columns:1fr;padding:16px}.card{width:48%}}
+    @media (max-width:520px){.card{width:100%}}
+    /* FIX inputs en modales (contacto y pago) */
+.modal-content input,
+.modal-content textarea,
+.payment-card input {
+  color: #111 !important;
+  background: #fff !important;
+  border: 1px solid #ccc;
+}
+
+/* placeholder visible */
+.modal-content input::placeholder,
+.modal-content textarea::placeholder,
+.payment-card input::placeholder {
+  color: #666;
+}
+  </style>
+</head>
+<body>
+  <div class="wrap" role="main" aria-labelledby="mainTitle">
+    <!-- Left: Login / Profile / Contact quick -->
+    <div class="panel" id="authPanel" aria-hidden="false">
+      <div class="brand">
+        <div class="logo">TV</div>
+        <div>
+          <h1 id="mainTitle">TecnoVision</h1>
+          <p>Inicia sesión o crea una cuenta para ver el catálogo</p>
+        </div>
+      </div>
+
+      <!-- Login -->
+      <div id="loginArea" aria-live="polite">
+        <label for="loginUser">Usuario o correo</label>
+        <input id="loginUser" type="text" autocomplete="username" placeholder="usuario o correo@example.com" />
+        <label for="loginPass">Contraseña</label>
+        <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••" />
+
+        <div class="actions">
+          <button class="btn btn-primary" id="btnLogin">Iniciar sesión</button>
+          <button class="btn btn-ghost" id="btnShowRegister">Crear cuenta</button>
+        </div>
+
+        <div id="loginMsg" class="small" aria-live="assertive"></div>
+        <div class="small">Credenciales demo: <strong>admin / 1234</strong></div>
+      </div>
+
+      <!-- Register -->
+      <div id="registerArea" style="display:none;margin-top:14px;">
+        <label for="regUser">Usuario</label>
+        <input id="regUser" type="text" placeholder="Elige un usuario" />
+        <label for="regEmail">Correo</label>
+        <input id="regEmail" type="email" placeholder="tu@ejemplo.com" />
+        <label for="regPass">Contraseña</label>
+        <input id="regPass" type="password" placeholder="Al menos 6 caracteres" />
+        <label for="regPass2">Confirmar contraseña</label>
+        <input id="regPass2" type="password" placeholder="Repite la contraseña" />
+
+        <div class="actions">
+          <button class="btn btn-primary" id="btnRegister">Crear cuenta</button>
+          <button class="btn btn-ghost" id="btnCancelRegister">Cancelar</button>
+        </div>
+
+        <div id="regMsg" class="small" aria-live="assertive"></div>
+      </div>
+
+      <div style="margin-top:14px" class="about-card">
+        <h4 style="margin:0 0 8px 0;color:var(--blue)">Nosotros</h4>
+        <p class="small" style="margin:0 0 8px 0">TecnoVision es una tienda demo dedicada a mostrar equipos y accesorios. Este sitio es una demostración local con funciones de catálogo, asistente y pago simulado.</p>
+        <div class="small" style="margin-bottom:8px"><strong>Contacto rápido:</strong></div>
+        <ul class="contact-list">
+          <li>📧 <a href="mailto:info@tecnovision.example" style="color:#fff;text-decoration:underline">info@tecnovision.example</a></li>
+          <li>📞 +503 7000 0000</li>
+          <li>📍 San Salvador, El Salvador</li>
+        </ul>
+        <div style="margin-top:8px">
+          <button class="btn btn-ghost" id="btnOpenContact">Contactar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Catalog / Pages -->
+    <div class="content" id="catalogArea" style="display:none" aria-live="polite">
+      <!-- Navbar -->
+      <div id="siteNav" class="site-nav" style="display:none">
+        <div style="display:flex;align-items:center;gap:12px">
+          <ul class="nav-list" role="menubar" aria-label="Secciones principales">
+            <li><a data-section="catalog">CATÁLOGO</a></li>
+            <li><a data-section="novedades">NOVEDADES</a></li>
+            <li><a data-section="reingresos">REINGRESOS</a></li>
+            <li><a data-section="gamer">ZONA GAMER</a></li>
+            <li><a data-section="nosotros">NOSOTROS</a></li>
+            <li><a data-section="contacto">CONTACTO</a></li>
+            <li><a data-section="mause">MOUSE</a></li>
+<li><a data-section="teclados">TECLADOS</a></li>
+<li><a data-section="compras">MIS COMPRAS</a></li>
+          </ul>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="navSearch" class="nav-search" placeholder="Buscar productos..." aria-label="Buscar productos">
+        </div>
+      </div>
+
+      <div class="topbar">
+        <input id="search" class="nav-search" placeholder="Buscar productos..." />
+        <div class="controls">
+          <div id="userInfo" class="small" style="text-align:right"></div>
+          <button class="btn btn-ghost" id="btnCart">Carrito (0)</button>
+        </div>
+      </div>
+
+      <div id="categoriesPanel" class="categories" aria-hidden="true" style="display:none"></div>
+
+      <div id="pageContent">
+        <div id="products" class="grid" aria-label="Lista de productos"></div>
+        <div id="noResults" class="small" style="display:none">No se encontraron productos.</div>
+      </div>
+
+      <div class="extras" id="extrasPanel">
+        <h4>Funciones sugeridas</h4>
+        <ul>
+          <li><strong>Filtros:</strong> rango de precio, CPU, RAM, tamaño de pantalla.</li>
+          <li><strong>Banner de ofertas:</strong> temporizadores para promociones.</li>
+          <li><strong>Páginas de marca:</strong> logos y listados por fabricante.</li>
+          <li><strong>Comparador:</strong> comparar especificaciones lado a lado.</li>
+          <li><strong>Reseñas:</strong> valoraciones de usuarios.</li>
+          <li><strong>Checkout:</strong> flujo de pago simulado.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product modal -->
+  <div id="productModal" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="close" id="modalClose" aria-label="Cerrar">&times;</button>
+      <div class="modal-left">
+        <img id="modalImage" src="" alt="">
+      </div>
+      <div class="modal-right">
+        <h2 id="modalTitle"></h2>
+        <p id="modalDesc"></p>
+        <p id="modalSpecs" class="small"></p>
+        <p id="modalPrice" style="font-weight:800;margin-top:10px"></p>
+
+        <!-- Suscripción a reingreso -->
+        <div id="restockArea" style="margin-top:12px">
+          <div class="small">¿Quieres que te notifiquemos si vuelve a estar disponible?</div>
+          <div class="restock-form">
+            <input id="restockEmail" type="email" placeholder="tu@correo.com" />
+            <button class="btn btn-ghost" id="btnSubscribeRestock">Suscribirme</button>
+          </div>
+          <div id="restockMsg" class="small" style="margin-top:8px"></div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn-buy" id="modalBuy">Agregar al carrito</button>
+          <button class="btn btn-ghost" id="modalCloseBtn">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact modal -->
+  <div id="contactModal" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="contactTitle">
+      <button class="close" id="contactClose" aria-label="Cerrar">&times;</button>
+      <div style="width:100%">
+        <h2 id="contactTitle">Contáctanos</h2>
+        <p class="small">Rellena el formulario y te responderemos lo antes posible.</p>
+        <label>Nombre</label>
+        <input id="contactName" type="text" placeholder="Tu nombre" />
+        <label>Correo</label>
+        <input id="contactEmail" type="email" placeholder="tu@correo.com" />
+        <label>Asunto</label>
+        <input id="contactSubject" type="text" placeholder="Asunto" />
+        <label>Mensaje</label>
+        <textarea id="contactMessage" placeholder="Escribe tu mensaje..."></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button class="btn-cancel btn-ghost" id="contactCancel">Cancelar</button>
+          <button class="btn btn-primary" id="contactSend">Enviar mensaje</button>
+        </div>
+        <div id="contactMsg" class="small" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assistant widget -->
+  <button id="tvAssistantBtn" title="Asistente">AI</button>
+  <div id="tvAssistantPanel" role="dialog" aria-label="Asistente de tienda">
+    <div id="tvAssistantHeader">
+      <div>Asistente TecnoVision</div>
+      <button id="tvAssistantClose" style="background:transparent;border:none;color:#fff;font-weight:700;cursor:pointer">X</button>
+    </div>
+    <div id="tvAssistantMessages" aria-live="polite"></div>
+    <div style="padding:8px 12px">
+      <div class="tv-small">Sugerencias rápidas:</div>
+      <div class="tv-quick-list" id="tvQuickList"></div>
+    </div>
+    <div id="tvAssistantInput">
+      <input id="tvAssistantQuery" placeholder="Pregunta sobre disponibilidad, precio, specs..." aria-label="Escribe tu pregunta">
+      <button id="tvAssistantSend">Enviar</button>
+    </div>
+  </div>
+
+  <!-- Payment modal -->
+  <div id="paymentModal" aria-hidden="true">
+    <div class="payment-card" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+      <h3 id="payTitle">Pago</h3>
+      <div id="paySummary" class="small-muted">Total: $<span id="payTotal">0.00</span></div>
+
+      <label style="margin-top:12px">Nombre del titular</label>
+      <input id="payName" type="text" placeholder="Nombre completo" />
+
+      <label style="margin-top:8px">Número de tarjeta</label>
+      <input id="payNumber" type="text" inputmode="numeric" placeholder="4242 4242 4242 4242" maxlength="19" />
+
+      <div class="payment-row">
+        <input id="payExp" type="text" placeholder="MM/AA" maxlength="5" />
+        <input id="payCvc" type="text" inputmode="numeric" placeholder="CVC" maxlength="4" style="width:110px" />
+      </div>
+
+      <div class="small-muted">Modo demo: los datos no se envían. Para pagos reales integra una pasarela segura.</div>
+
+      <div class="payment-actions">
+        <button class="btn-cancel" id="btnPayCancel">Cancelar</button>
+        <button class="btn-pay" id="btnPayConfirm">Pagar ahora</button>
+      </div>
+
+      <div id="payMsg" class="small-muted" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <script>
+    /*************************************************************************
+     * Archivo final: Login, Catálogo, Novedades, Reingresos, Nosotros,
+     * Contacto, Asistente AI robusto y Pago simulado.
+     *
+     * Guarda como index.html y ábrelo en tu navegador. Reemplaza rutas de
+     * imágenes si es necesario.
+     *************************************************************************/
+
+    /* ---------------- Datos de ejemplo (productos) ---------------- */
+    const PRODUCTS = [
+      { id:'p1', title:'Laptop Premium', price:1000, img:'imagenes/imagen1.avif', desc:'Intel i7, 16GB RAM, 1TB SSD, 15"', specs:'CPU: Intel i7; RAM: 16GB; 1TB SSD; Pantalla: 15"', category:'Laptops', brand:'Dell', isNew:true, isRestocked:false, stock:5 },
+      { id:'p2', title:'Modern Laptop', price:799, img:'imagenes/imagen2.jpeg', desc:'Ryzen 7, 8GB RAM, 512GB SSD, 17.3"', specs:'CPU: Ryzen 7; RAM: 8GB; 512GB SSD; Pantalla: 17.3"', category:'Laptops', brand:'MSI', isNew:false, isRestocked:true, stock:2 },
+      { id:'p3', title:'Accessory Kit', price:50, img:'imagenes/imagen3.jpg', desc:'Teclado mecánico, mouse gamer y SSD externo', specs:'Teclado mecánico; Mouse gamer; SSD 256GB', category:'Accesorios', brand:'Logitech', isNew:false, isRestocked:false, stock:10 },
+      { id:'p4', title:'Budget Laptop', price:600, img:'imagenes/imagen4.avif', desc:'Intel i5, 8GB RAM, 256GB SSD, 14"', specs:'CPU: Intel i5; RAM: 8GB; 256GB SSD; Pantalla: 14"', category:'Laptops', brand:'Acer', isNew:false, isRestocked:false, stock:0 },
+      { id:'p5', title:'Gaming Desktop', price:1500, img:'imagenes/imagen1.avif', desc:'Ryzen 9, 32GB RAM, RTX 4070, 1TB NVMe', specs:'CPU: Ryzen 9; RAM: 32GB; GPU: RTX 4070; 1TB NVMe', category:'PC Gamer', brand:'Corsair', isNew:true, isRestocked:false, stock:3 },
+      { id:'p6', title:'Mouse Gamer RGB', price:45, img:'imagenes/imagen5.jpg', desc:'Mouse gamer RGB, 7200 DPI, 7 botones programables', specs:'Tipo: Gamer; DPI: 7200; Botones: 7; Conexión: USB; RGB: Sí', category:'Mause', brand:'Dell', isNew:true, isRestocked:false, stock:5 },
+
+{ id:'p7', title:'Mouse Inalámbrico Pro', price:30, img:'imagenes/imagen6.png', desc:'Mouse inalámbrico ergonómico, batería recargable', specs:'Tipo: Oficina; DPI: 1600; Botones: 3; Conexión: Bluetooth; Batería: Recargable', category:'Mause', brand:'Dell', isNew:true, isRestocked:false, stock:5 },
+{ id:'p8', title:'Teclado Mecánico RGB', price:80, img:'imagenes/imagen7.png', desc:'Teclado mecánico RGB, switches Blue, alto rendimiento', specs:'Tipo: Mecánico; Switch: Blue; Iluminación: RGB; Conexión: USB; Idioma: Español', category:'Teclados', brand:'Dell', isNew:true, isRestocked:false, stock:5 },
+
+{ id:'p9', title:'Teclado Inalámbrico Slim', price:40, img:'imagenes/imagen8.webp', desc:'Teclado inalámbrico delgado, diseño elegante', specs:'Tipo: Membrana; Conexión: Bluetooth; Batería: Recargable; Idioma: Español', category:'Teclados', brand:'Dell', isNew:true, isRestocked:false, stock:5 }
+         ];
+window.PRODUCTS = PRODUCTS;
+    /* ---------------- Claves de almacenamiento ---------------- */
+    const USERS_KEY = 'tecnovision_users_v1';
+    const SESSION_KEY = 'tecnovision_session_v1';
+    const RESTOCK_SUBS_KEY = 'tecnovision_restock_subs_v1';
+
+    /* ---------------- Helpers ---------------- */
+    function loadUsers(){ try{ return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); }catch(e){ return {}; } }
+    function saveUsers(obj){ localStorage.setItem(USERS_KEY, JSON.stringify(obj)); }
+    function setSession(email){ localStorage.setItem(SESSION_KEY, email); }
+    function getSession(){ return localStorage.getItem(SESSION_KEY); }
+    function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+    async function sha256Hex(str){ const enc=new TextEncoder(); const data=enc.encode(str); const hash=await crypto.subtle.digest('SHA-256', data); const bytes=new Uint8Array(hash); return Array.from(bytes).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function isValidEmail(email){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+
+    /* ---------------- DOM elements ---------------- */
+    const loginUser = document.getElementById('loginUser');
+    const loginPass = document.getElementById('loginPass');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnShowRegister = document.getElementById('btnShowRegister');
+    const registerArea = document.getElementById('registerArea');
+    const btnRegister = document.getElementById('btnRegister');
+    const btnCancelRegister = document.getElementById('btnCancelRegister');
+    const regUser = document.getElementById('regUser');
+    const regEmail = document.getElementById('regEmail');
+    const regPass = document.getElementById('regPass');
+    const regPass2 = document.getElementById('regPass2');
+    const loginMsg = document.getElementById('loginMsg');
+    const regMsg = document.getElementById('regMsg');
+
+    const catalogArea = document.getElementById('catalogArea');
+    const productsEl = document.getElementById('products');
+    const searchEl = document.getElementById('search');
+    const navSearch = document.getElementById('navSearch');
+    const userInfo = document.getElementById('userInfo');
+    const btnCart = document.getElementById('btnCart');
+    const siteNav = document.getElementById('siteNav');
+    const categoriesPanel = document.getElementById('categoriesPanel');
+    const pageContent = document.getElementById('pageContent');
+
+    const productModal = document.getElementById('productModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalSpecs = document.getElementById('modalSpecs');
+    const modalPrice = document.getElementById('modalPrice');
+    const modalClose = document.getElementById('modalClose');
+    const modalBuy = document.getElementById('modalBuy');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+    const restockEmail = document.getElementById('restockEmail');
+    const btnSubscribeRestock = document.getElementById('btnSubscribeRestock');
+    const restockMsg = document.getElementById('restockMsg');
+
+    const adminProduct = document.getElementById('adminProduct');
+    const adminQty = document.getElementById('adminQty');
+    const adminRestock = document.getElementById('adminRestock');
+
+    const contactModal = document.getElementById('contactModal');
+    const contactClose = document.getElementById('contactClose');
+    const contactCancel = document.getElementById('contactCancel');
+    const contactSend = document.getElementById('contactSend');
+    const contactName = document.getElementById('contactName');
+    const contactEmail = document.getElementById('contactEmail');
+    const contactSubject = document.getElementById('contactSubject');
+    const contactMessage = document.getElementById('contactMessage');
+    const contactMsg = document.getElementById('contactMsg');
+    const btnOpenContact = document.getElementById('btnOpenContact');
+
+    /* ---------------- Register / Login UI ---------------- */
+    btnShowRegister.addEventListener('click', () => {
+      registerArea.style.display = 'block';
+      document.getElementById('loginArea').style.display = 'none';
+      regUser.focus();
+    });
+    btnCancelRegister.addEventListener('click', () => {
+      registerArea.style.display = 'none';
+      document.getElementById('loginArea').style.display = 'block';
+      loginUser.focus();
+      regMsg.textContent = '';
+    });
+
+    btnRegister.addEventListener('click', async () => {
+      const username = regUser.value.trim();
+      const email = (regEmail.value || '').trim().toLowerCase();
+      const p1 = regPass.value;
+      const p2 = regPass2.value;
+      if(!username || username.length < 3){ regMsg.textContent='El usuario debe tener al menos 3 caracteres.'; regMsg.className='msg error'; return; }
+      if(!isValidEmail(email)){ regMsg.textContent='Introduce un correo válido.'; regMsg.className='msg error'; return; }
+      if(p1.length < 6){ regMsg.textContent='La contraseña debe tener al menos 6 caracteres.'; regMsg.className='msg error'; return; }
+      if(p1 !== p2){ regMsg.textContent='Las contraseñas no coinciden.'; regMsg.className='msg error'; return; }
+
+      const users = loadUsers();
+      if(users[email] || Object.values(users).some(u => u.username.toLowerCase() === username.toLowerCase())){ regMsg.textContent='Correo o usuario ya existe.'; regMsg.className='msg error'; return; }
+
+      regMsg.textContent = 'Creando cuenta...'; regMsg.className='msg';
+      const hash = await sha256Hex(p1 + '::' + email);
+      users[email] = { username, email, passHash: hash, createdAt: new Date().toISOString() };
+      saveUsers(users);
+      regMsg.textContent = 'Cuenta creada. Ya puedes iniciar sesión.'; regMsg.className='msg success';
+
+      setTimeout(() => {
+        registerArea.style.display = 'none';
+        document.getElementById('loginArea').style.display = 'block';
+        loginUser.value = email;
+        loginPass.value = '';
+        loginMsg.textContent = 'Cuenta creada. Introduce la contraseña para iniciar sesión.'; loginMsg.className='small';
+      }, 900);
+    });
+
+    /* ---------------- Login ---------------- */
+    btnLogin.addEventListener('click', attemptLogin);
+    [loginUser, loginPass].forEach(el => el.addEventListener('keydown', (e) => { if(e.key === 'Enter') attemptLogin(); }));
+
+    async function attemptLogin(){
+      const id = (loginUser.value || '').trim().toLowerCase();
+      const pass = loginPass.value || '';
+      if(!id || !pass){ loginMsg.textContent = 'Introduce usuario/correo y contraseña.'; loginMsg.className='msg error'; return; }
+
+      const users = loadUsers();
+      let user = users[id] || Object.values(users).find(u => u.username.toLowerCase() === id);
+      if(!user && id === 'admin' && pass === '1234'){
+        setSession('admin@local');
+        showCatalog({ username:'admin', email:'admin@local' });
+        return;
+      }
+      if(!user){ loginMsg.textContent = 'Usuario no encontrado.'; loginMsg.className='msg error'; return; }
+
+      const hash = await sha256Hex(pass + '::' + user.email);
+      if(hash === user.passHash){
+        setSession(user.email);
+        showCatalog(user);
+      } else {
+        loginMsg.textContent = 'Contraseña incorrecta.'; loginMsg.className='msg error';
+      }
+    }
+
+    /* ---------------- Show catalog / pages ---------------- */
+    function showCatalog(user){
+      const loginArea = document.getElementById('loginArea');
+      loginArea.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#005bb5);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff">TV</div>
+            <div>
+              <div style="font-weight:800">${escapeHtml(user.username)}</div>
+              <div class="small">${escapeHtml(user.email)}</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn btn-ghost" id="btnLogout">Cerrar sesión</button>
+            <button class="btn btn-ghost" id="btnProfile">Perfil</button>
+          </div>
+          <div class="small" style="margin-top:12px">Has iniciado sesión. El catálogo aparece a la derecha — haz clic en un producto para ver detalles.</div>
+        </div>
+      `;
+      document.getElementById('btnLogout').addEventListener('click', () => {
+        clearSession();
+        location.reload();
+      });
+
+      siteNav.style.display = 'flex';
+      document.getElementById('catalogArea').style.display = 'flex';
+      populateCategories();
+      renderProducts();
+      updateCartCount();
+      populateAdminSelect();
+    }
+
+    /* ---------------- Render products & search ---------------- */
+    function renderProducts(filter=''){
+      productsEl.innerHTML = '';
+      const q = (filter || '').trim().toLowerCase();
+
+      let list = PRODUCTS.slice();
+      if(q.startsWith('brand:')) {
+        const brand = q.split(':')[1];
+        list = list.filter(p => p.brand.toLowerCase() === brand.toLowerCase());
+      } else if(q.startsWith('category:')) {
+        const cat = q.split(':')[1];
+        list = list.filter(p => p.category.toLowerCase() === cat.toLowerCase());
+      } else if(q === 'offers' || q === 'ofertas') {
+        list = list.filter(p => p.offer);
+      } else if(q === 'gamer') {
+        list = list.filter(p => p.category.toLowerCase().includes('gamer') || p.title.toLowerCase().includes('gaming'));
+      } else if(q === 'novedades' || q === 'new') {
+        list = list.filter(p => p.isNew);
+      } else if(q === 'reingresos' || q === 'restock' || q === 'restocked') {
+        list = list.filter(p => p.isRestocked);
+      } else if(q) {
+        list = list.filter(p => (p.title + ' ' + p.desc + ' ' + p.brand + ' ' + p.category).toLowerCase().includes(q));
+      }
+
+      document.getElementById('noResults').style.display = list.length === 0 ? 'block' : 'none';
+      list.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.tabIndex = 0;
+        card.dataset.id = p.id;
+
+        let badgeHtml = '';
+        if(p.isNew) badgeHtml = `<div class="badge new">NUEVO</div>`;
+        else if(p.isRestocked) badgeHtml = `<div class="badge restock">REINGRESO</div>`;
+
+        card.innerHTML = `
+          ${badgeHtml}
+          <img src="${p.img}" alt="${escapeHtml(p.title)}">
+          <h3>${escapeHtml(p.title)}</h3>
+          <p class="small">${escapeHtml(p.desc)}</p>
+          <p class="price">$${p.price}${p.offer ? ' • OFERTA' : ''}</p>
+          <div class="small" style="margin-top:8px">Stock: ${p.stock > 0 ? p.stock : 'Agotado'}</div>
+        `;
+        card.addEventListener('click', () => openProduct(p.id));
+        card.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') openProduct(p.id); });
+        productsEl.appendChild(card);
+      });
+    }
+
+    searchEl.addEventListener('input', (e) => renderProducts(e.target.value));
+    navSearch.addEventListener('input', (e) => renderProducts(e.target.value));
+
+    /* ---------------- Categories (chips) ---------------- */
+    function populateCategories(){
+      const cats = Array.from(new Set(PRODUCTS.map(p => p.category)));
+      categoriesPanel.innerHTML = '';
+      cats.forEach(cat => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.textContent = cat;
+        chip.tabIndex = 0;
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          renderProducts('category:' + cat);
+        });
+        chip.addEventListener('keydown', (e) => { if(e.key === 'Enter') chip.click(); });
+        categoriesPanel.appendChild(chip);
+      });
+      categoriesPanel.style.display = 'flex';
+      categoriesPanel.setAttribute('aria-hidden', 'false');
+    }
+
+    /* ---------------- Product modal & restock subscribe ---------------- */
+    let activeProduct = null;
+    function openProduct(id){
+      const p = PRODUCTS.find(x => x.id === id);
+      if(!p) return;
+      activeProduct = p;
+      modalImage.src = p.img;
+      modalImage.alt = p.title;
+      modalTitle.textContent = p.title;
+      modalDesc.textContent = p.desc;
+      modalSpecs.textContent = p.specs + ' • Marca: ' + p.brand + ' • Categoría: ' + p.category;
+      modalPrice.textContent = 'Precio: $' + p.price;
+      restockMsg.textContent = '';
+      restockEmail.value = '';
+      productModal.classList.add('show');
+      productModal.setAttribute('aria-hidden','false');
+      modalClose.focus();
+    }
+    function closeProductModal(){ productModal.classList.remove('show'); productModal.setAttribute('aria-hidden','true'); activeProduct = null; }
+    modalClose.addEventListener('click', closeProductModal);
+    modalCloseBtn.addEventListener('click', closeProductModal);
+    productModal.addEventListener('click', (e) => { if(e.target === productModal) closeProductModal(); });
+    document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && productModal.classList.contains('show')) closeProductModal(); });
+
+    btnSubscribeRestock.addEventListener('click', () => {
+      const email = (restockEmail.value || '').trim().toLowerCase();
+      if(!activeProduct){ restockMsg.textContent = 'Selecciona un producto primero.'; return; }
+      if(!isValidEmail(email)){ restockMsg.textContent = 'Introduce un correo válido.'; return; }
+      subscribeRestock(activeProduct.id, email);
+      restockMsg.textContent = 'Suscripción guardada. Te avisaremos si vuelve a estar disponible.';
+      restockMsg.className = 'small';
+      restockEmail.value = '';
+    });
+
+    /* ---------------- Carrito simple ---------------- */
+    function cartKey(email){ return 'tv_cart_' + email; }
+    function loadCart(email){ try{ return JSON.parse(localStorage.getItem(cartKey(email)) || '[]'); }catch(e){ return []; } }
+    function saveCart(email, cart){ localStorage.setItem(cartKey(email), JSON.stringify(cart)); }
+    function updateCartCount(){
+      const session = getSession();
+      if(!session){ btnCart.textContent = 'Carrito (0)'; return; }
+      const cart = loadCart(session);
+      const total = cart.reduce((s,i) => s + i.qty, 0);
+      btnCart.textContent = `Carrito (${total})`;
+    }
+
+    modalBuy.addEventListener('click', () => {
+      const session = getSession();
+      if(!session){ alert('Inicia sesión para comprar.'); return; }
+      if(!activeProduct) return;
+      if(activeProduct.stock <= 0){ alert('Producto agotado. Puedes suscribirte para recibir aviso.'); return; }
+      const cart = loadCart(session);
+      const found = cart.find(i => i.id === activeProduct.id);
+      if(found) found.qty += 1; else cart.push({ id: activeProduct.id, qty: 1 });
+      saveCart(session, cart);
+      updateCartCount();
+      activeProduct.stock = Math.max(0, activeProduct.stock - 1);
+      renderProducts();
+      closeProductModal();
+      alert('Agregado al carrito (demo).');
+    });
+
+    btnCart.addEventListener('click', () => {
+      const session = getSession();
+      if(!session){ alert('Inicia sesión para ver el carrito.'); return; }
+      const cart = loadCart(session);
+      if(cart.length === 0){ alert('Tu carrito está vacío.'); return; }
+      let text = 'Contenido del carrito:\n\n';
+      let total = 0;
+      cart.forEach(item => {
+        const p = PRODUCTS.find(x => x.id === item.id);
+        text += `${p.title} — Cant: ${item.qty} — $${p.price} c/u\n`;
+        total += p.price * item.qty;
+      });
+      text += `\nTotal: $${total.toFixed(2)}\n\n¿Proceder al pago?`;
+      if(confirm(text)){
+        if(typeof openPaymentModal === 'function') openPaymentModal();
+      }
+    });
+
+    /* ---------------- Suscripción a reingresos (demo local) ---------------- */
+    function subscribeRestock(productId, email){
+      const subs = JSON.parse(localStorage.getItem(RESTOCK_SUBS_KEY) || '[]');
+      if(subs.some(s => s.productId === productId && s.email === email)) return;
+      subs.push({ productId, email, createdAt: new Date().toISOString() });
+      localStorage.setItem(RESTOCK_SUBS_KEY, JSON.stringify(subs));
+    }
+
+    function notifyRestockSubscribers(productId){
+      const subs = JSON.parse(localStorage.getItem(RESTOCK_SUBS_KEY) || '[]');
+      const notify = subs.filter(s => s.productId === productId);
+      if(notify.length === 0) return;
+      notify.forEach(n => console.log('Notificar a', n.email, 'producto', productId));
+      alert(`Se notificará a ${notify.length} suscriptor(es) del producto ${productId} (demo).`);
+      const remaining = subs.filter(s => s.productId !== productId);
+      localStorage.setItem(RESTOCK_SUBS_KEY, JSON.stringify(remaining));
+    }
+
+    /* ---------------- Panel admin demo: simular reingreso ---------------- */
+    function populateAdminSelect(){
+      if(!adminProduct) return;
+      adminProduct.innerHTML = '';
+      PRODUCTS.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.title} (${p.id})`;
+        adminProduct.appendChild(opt);
+      });
+    }
+    if(adminRestock) adminRestock.addEventListener('click', () => {
+      const pid = adminProduct.value;
+      const qty = parseInt(adminQty.value, 10) || 0;
+      if(!pid || qty <= 0){ alert('Selecciona producto y cantidad válida.'); return; }
+      onProductRestocked(pid, qty);
+      alert('Reingreso simulado: ' + pid + ' + ' + qty);
+    });
+
+    function onProductRestocked(productId, qty){
+      const p = PRODUCTS.find(x => x.id === productId);
+      if(!p) return;
+      p.stock = (p.stock || 0) + qty;
+      p.isRestocked = true;
+      p.restockDate = new Date().toISOString();
+      notifyRestockSubscribers(productId);
+      renderProducts();
+    }
+
+    /* ---------------- Navbar clicks (Novedades / Reingresos / Marcas / Nosotros / Contacto) ---------------- */
+    document.addEventListener('click', function(e){
+      const a = e.target.closest('.nav-list a');
+      if (!a) return;
+      e.preventDefault();
+      const section = a.dataset.section;
+      if(section === 'catalog' || !section){
+        renderProducts();
+      } else if(section === 'novedades'){
+        renderProducts('novedades');
+      } else if(section === 'reingresos'){
+        renderProducts('reingresos');
+      } else if(section === 'gamer'){
+        renderProducts('gamer');
+      } else if(section === 'nosotros'){
+        showAboutPage();
+      } else if(section === 'contacto'){
+        openContactModal();
+      }
+      else if(section === 'mause'){
+  renderProducts('category:Mause');
+}
+else if(section === 'teclados'){
+  renderProducts('category:Teclados');
+}
+else if(section === 'compras'){
+  showOrders();
+}
+    });
+
+    function showOrders(){
+  const session = localStorage.getItem(SESSION_KEY);
+  if(!session) return;
+
+  const history = JSON.parse(localStorage.getItem('tv_orders_' + session) || '[]');
+
+  if(history.length === 0){
+    pageContent.innerHTML = '<p class="small">No has realizado compras aún.</p>';
+    return;
+  }
+
+  let html = '<div class="about-card"><h2 style="color:var(--blue)">Mis Compras</h2>';
+
+  history.forEach(order => {
+    html += `
+      <div style="margin-top:12px;padding:10px;border:1px solid #ccc;border-radius:8px">
+        <strong>Pedido:</strong> ${order.id}<br>
+        <strong>Fecha:</strong> ${order.date}<br>
+        <strong>Total:</strong> $${order.total.toFixed(2)}<br>
+        <strong>Productos:</strong><br>
+        <ul>
+          ${order.items.map(i=>{
+            const p = PRODUCTS.find(x => x.id === i.id);
+            return `<li>${p ? p.title : 'Producto'} x${i.qty}</li>`;
+          }).join('')}
+        </ul>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  pageContent.innerHTML = html;
+}
+
+    /* ---------------- About page ---------------- */
+    function showAboutPage(){
+      pageContent.innerHTML = `
+        <div class="about-card">
+          <h2 style="margin-top:0;color:var(--blue)">Sobre TecnoVision</h2>
+          <p class="small">TecnoVision es una tienda demo creada para mostrar cómo integrar catálogo, asistente virtual y pago simulado en una sola página. Nuestro objetivo es ofrecer una experiencia clara y moderna para explorar equipos y accesorios.</p>
+          <h3 style="margin-top:12px">Misión</h3>
+          <p class="small">Facilitar la búsqueda de tecnología con información clara y soporte inmediato.</p>
+          <h3 style="margin-top:12px">Contacto</h3>
+          <ul class="contact-list">
+            <li>📧 <a href="mailto:info@tecnovision.example" style="color:#fff;text-decoration:underline">info@tecnovision.example</a></li>
+            <li>📞 +503 7000 0000</li>
+            <li>📍 San Salvador, El Salvador</li>
+          </ul>
+          <div style="margin-top:12px">
+            <button class="btn btn-primary" id="aboutContactBtn">Enviar mensaje</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('aboutContactBtn').addEventListener('click', openContactModal);
+    }
+
+    /* ---------------- Contact modal logic ---------------- */
+    function openContactModal(){
+      contactName.value = '';
+      contactEmail.value = '';
+      contactSubject.value = '';
+      contactMessage.value = '';
+      contactMsg.textContent = '';
+      contactModal.classList.add('show');
+      contactModal.setAttribute('aria-hidden','false');
+      contactName.focus();
+    }
+    function closeContactModal(){ contactModal.classList.remove('show'); contactModal.setAttribute('aria-hidden','true'); }
+    if(contactClose) contactClose.addEventListener('click', closeContactModal);
+    if(contactCancel) contactCancel.addEventListener('click', closeContactModal);
+    if(btnOpenContact) btnOpenContact.addEventListener('click', openContactModal);
+
+    contactSend.addEventListener('click', () => {
+      const name = contactName.value.trim();
+      const email = (contactEmail.value || '').trim().toLowerCase();
+      const subject = contactSubject.value.trim();
+      const message = contactMessage.value.trim();
+      if(!name || !isValidEmail(email) || !subject || !message){ contactMsg.textContent = 'Completa todos los campos con información válida.'; return; }
+      // Demo: guardar mensaje en localStorage (en producción enviar a backend/email)
+      const key = 'tecnovision_contact_messages_v1';
+      const msgs = JSON.parse(localStorage.getItem(key) || '[]');
+      msgs.push({ name, email, subject, message, createdAt: new Date().toISOString() });
+      localStorage.setItem(key, JSON.stringify(msgs));
+      contactMsg.textContent = 'Mensaje enviado. Te responderemos pronto (demo).';
+      setTimeout(() => closeContactModal(), 900);
+    });
+
+    /* ---------------- Assistant robust (espera PRODUCTS) ---------------- */
+    (function(){
+      // Esperar a DOM ready
+      function onReady(fn){
+        if(document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn,0);
+        else document.addEventListener('DOMContentLoaded', fn);
+      }
+
+      onReady(function(){
+        const assistantBtn = document.getElementById('tvAssistantBtn');
+        const assistantPanel = document.getElementById('tvAssistantPanel');
+        const assistantClose = document.getElementById('tvAssistantClose');
+        const assistantMessages = document.getElementById('tvAssistantMessages');
+        const assistantInput = document.getElementById('tvAssistantQuery');
+        const assistantSend = document.getElementById('tvAssistantSend');
+        const quickList = document.getElementById('tvQuickList');
+
+        if(!assistantBtn || !assistantPanel || !assistantMessages || !assistantInput || !assistantSend || !quickList){
+          console.error('Asistente: faltan elementos DOM.');
+          return;
+        }
+
+        function waitForProducts(timeout = 1500){
+          return new Promise((resolve) => {
+            if(window.PRODUCTS && Array.isArray(window.PRODUCTS)) return resolve(true);
+            const start = Date.now();
+            const iv = setInterval(() => {
+              if(window.PRODUCTS && Array.isArray(window.PRODUCTS)){
+                clearInterval(iv);
+                return resolve(true);
+              }
+              if(Date.now() - start > timeout){
+                clearInterval(iv);
+                return resolve(false);
+              }
+            }, 80);
+          });
+        }
+
+        function appendAssistantMessage(text, who='bot'){
+          const div = document.createElement('div');
+          div.className = 'tvMsg ' + (who === 'user' ? 'user' : 'bot');
+          div.textContent = text;
+          assistantMessages.appendChild(div);
+          assistantMessages.scrollTop = assistantMessages.scrollHeight;
+        }
+
+        function parseQuery(q){
+          const lower = q.toLowerCase();
+          if(/(disponible|esta disponible|hay|stock|disponibilidad)/i.test(lower)) return { intent:'availability' };
+          if(/(precio|cuesta|cost|price)/i.test(lower)) return { intent:'price' };
+          if(/(especificaciones|specs|detalles|características|spec)/i.test(lower)) return { intent:'specs' };
+          if(/(novedad|novedades|new arrivals)/i.test(lower)) return { intent:'new' };
+          if(/(reingres|reingresos|restock|back in stock)/i.test(lower)) return { intent:'restock' };
+          if(/(añadir al carrito|agregar al carrito|add to cart)/i.test(lower)) return { intent:'add_to_cart' };
+          if(/(suscrib|notificar|avisar)/i.test(lower)) return { intent:'subscribe_restock' };
+          if(/(contact|contacto|cómo contact|cómo contactarnos|cómo contactarlos)/i.test(lower)) return { intent:'contact' };
+          return { intent:'search' };
+        }
+
+        function findProductByName(q){
+          if(!window.PRODUCTS) return null;
+          const name = q.toLowerCase();
+          return window.PRODUCTS.find(p => (p.title + ' ' + p.desc + ' ' + (p.brand||'')).toLowerCase().includes(name)) ||
+                 window.PRODUCTS.find(p => p.title.toLowerCase() === name) ||
+                 window.PRODUCTS.find(p => name.includes(p.title.toLowerCase()));
+        }
+
+        function addToCartLocal(product){
+          try{
+            const session = localStorage.getItem(SESSION_KEY);
+            if(!session) return { ok:false, reason:'no-session' };
+            const key = 'tv_cart_' + session;
+            const cart = JSON.parse(localStorage.getItem(key) || '[]');
+            const found = cart.find(i => i.id === product.id);
+            if(found) found.qty += 1; else cart.push({ id: product.id, qty: 1 });
+            localStorage.setItem(key, JSON.stringify(cart));
+            if(typeof updateCartCount === 'function') updateCartCount();
+            return { ok:true };
+          }catch(e){
+            console.error('addToCartLocal error', e);
+            return { ok:false, reason:'error' };
+          }
+        }
+
+        function subscribeRestockLocal(productId, email){
+          try{
+            const key = RESTOCK_SUBS_KEY;
+            const subs = JSON.parse(localStorage.getItem(key) || '[]');
+            if(subs.some(s => s.productId === productId && s.email === email)) return false;
+            subs.push({ productId, email, createdAt: new Date().toISOString() });
+            localStorage.setItem(key, JSON.stringify(subs));
+            return true;
+          }catch(e){
+            console.error('subscribeRestockLocal error', e);
+            return false;
+          }
+        }
+
+        async function handleAssistantQuery(raw){
+          if(!raw || !raw.trim()) return;
+          appendAssistantMessage(raw, 'user');
+
+          const hasProducts = await waitForProducts(1500);
+          if(!hasProducts){
+            appendAssistantMessage('Lo siento — el catálogo no está cargado en esta página. Intenta recargar o abre la página principal del catálogo.', 'bot');
+            console.warn('Asistente: PRODUCTS no disponible en window después de esperar.');
+            return;
+          }
+
+          const parsed = parseQuery(raw);
+          const product = findProductByName(raw);
+
+          try{
+            if(parsed.intent === 'availability'){
+              if(product){
+                const stock = product.stock || 0;
+                appendAssistantMessage(stock > 0 ? `Sí — "${product.title}" está disponible. Stock aproximado: ${stock}.` : `Actualmente "${product.title}" está agotado. ¿Quieres que te notifique cuando vuelva a estar disponible?`, 'bot');
+              } else {
+                const q = raw.toLowerCase();
+                const matches = PRODUCTS.filter(p => (p.title + ' ' + p.desc + ' ' + p.brand).toLowerCase().includes(q) && (p.stock || 0) > 0);
+                appendAssistantMessage(matches.length ? `He encontrado ${matches.length} producto(s) disponible(s): ${matches.map(m=>m.title).slice(0,4).join(', ')}.` : 'No encontré productos disponibles que coincidan.', 'bot');
+              }
+              return;
+            }
+
+            if(parsed.intent === 'price'){
+              if(product){ appendAssistantMessage(`El precio de "${product.title}" es $${product.price}.`, 'bot'); }
+              else { appendAssistantMessage('No encontré el producto por nombre. Prueba con el nombre exacto.', 'bot'); }
+              return;
+            }
+
+            if(parsed.intent === 'specs'){
+              if(product){ appendAssistantMessage(`Especificaciones de "${product.title}": ${product.specs}.`, 'bot'); }
+              else appendAssistantMessage('No identifiqué el producto. Escribe el nombre exacto para ver sus especificaciones.', 'bot');
+              return;
+            }
+
+            if(parsed.intent === 'new'){
+              const list = PRODUCTS.filter(p => p.isNew);
+              appendAssistantMessage(list.length ? `Novedades: ${list.map(p=>p.title+' ($'+p.price+')').join(' — ')}` : 'No hay novedades marcadas.', 'bot');
+              return;
+            }
+
+            if(parsed.intent === 'restock'){
+              const list = PRODUCTS.filter(p => p.isRestocked);
+              appendAssistantMessage(list.length ? `Reingresos: ${list.map(p=>p.title+' (stock:'+ (p.stock||0)+')').join(' — ')}` : 'No hay reingresos recientes.', 'bot');
+              return;
+            }
+
+            if(parsed.intent === 'add_to_cart'){
+              if(product){
+                const ok = addToCartLocal(product);
+                appendAssistantMessage(ok.ok ? `He agregado "${product.title}" a tu carrito.` : (ok.reason === 'no-session' ? 'Debes iniciar sesión para agregar al carrito.' : 'No pude agregar el producto al carrito.'), 'bot');
+              } else appendAssistantMessage('Indica el producto que quieres agregar (ej.: "Agregar Laptop Premium al carrito").', 'bot');
+              return;
+            }
+
+            if(parsed.intent === 'subscribe_restock'){
+              if(product){
+                const emailMatch = raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+                if(emailMatch){
+                  const ok = subscribeRestockLocal(product.id, emailMatch[0].toLowerCase());
+                  appendAssistantMessage(ok ? 'Te he suscrito para recibir aviso cuando vuelva a estar disponible.' : 'Ya estabas suscrito para este producto.', 'bot');
+                } else appendAssistantMessage('Dime tu correo para suscribirte (ej.: "Suscríbeme para Laptop Premium: correo@ejemplo.com").', 'bot');
+              } else appendAssistantMessage('Indica el producto para el que quieres suscribirte.', 'bot');
+              return;
+            }
+
+            if(parsed.intent === 'contact'){
+              appendAssistantMessage('Puedes contactarnos por correo a info@tecnovision.example o usar el formulario de contacto. ¿Quieres que abra el formulario?', 'bot');
+              return;
+            }
+
+            if(product){
+              appendAssistantMessage(`Encontré "${product.title}". Precio: $${product.price}. Stock: ${product.stock||0}. Especificaciones: ${product.specs}.`, 'bot');
+            } else {
+              appendAssistantMessage('No encontré coincidencias exactas. Prueba con el nombre completo del producto o escribe "NOVEDADES" o "REINGRESOS".', 'bot');
+            }
+          }catch(err){
+            console.error('Asistente error interno', err);
+            appendAssistantMessage('Ha ocurrido un error al procesar tu consulta. Intenta de nuevo.', 'bot');
+          }
+        }
+
+        assistantSend.addEventListener('click', ()=>{ const q = assistantInput.value.trim(); if(!q) return; handleAssistantQuery(q); assistantInput.value=''; });
+        assistantInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') assistantSend.click(); });
+        assistantBtn.addEventListener('click', ()=>{ assistantPanel.style.display = assistantPanel.style.display === 'flex' ? 'none' : 'flex'; assistantInput.focus(); });
+        assistantClose.addEventListener('click', ()=>assistantPanel.style.display = 'none');
+
+        const SUGGESTIONS = ['¿Está disponible Laptop Premium?','Precio de Modern Laptop','Mostrar novedades','Mostrar reingresos','¿Qué incluye Accessory Kit?','Agregar Laptop Premium al carrito','¿Cómo contactarlos?'];
+        quickList.innerHTML = '';
+        SUGGESTIONS.forEach(text => {
+          const b = document.createElement('button');
+          b.className = 'tv-quick-btn';
+          b.textContent = text;
+          b.addEventListener('click', ()=>{ assistantInput.value = text; assistantSend.click(); });
+          quickList.appendChild(b);
+        });
+
+        console.log('Asistente inicializado. Productos disponibles:', Array.isArray(window.PRODUCTS) ? window.PRODUCTS.length : 'no definido');
+      });
+    })();
+
+    /* ---------------- Payment modal logic (demo) ---------------- */
+    (function(){
+      const paymentModal = document.getElementById('paymentModal');
+      const btnPayCancel = document.getElementById('btnPayCancel');
+      const btnPayConfirm = document.getElementById('btnPayConfirm');
+      const payTotalEl = document.getElementById('payTotal');
+      const payMsg = document.getElementById('payMsg');
+
+      function computeCartTotal(){
+        const session = localStorage.getItem(SESSION_KEY);
+        if(!session) return 0;
+        const cart = JSON.parse(localStorage.getItem('tv_cart_' + session) || '[]');
+        let total = 0;
+        cart.forEach(item => {
+          const p = PRODUCTS.find(x => x.id === item.id);
+          if(p) total += p.price * item.qty;
+        });
+        return total;
+      }
+
+      window.openPaymentModal = function(){
+        const total = computeCartTotal();
+        payTotalEl.textContent = total.toFixed(2);
+        payMsg.textContent = '';
+        paymentModal.classList.add('show');
+        paymentModal.setAttribute('aria-hidden','false');
+        document.getElementById('payName').focus();
+      };
+
+      function closePaymentModal(){
+        paymentModal.classList.remove('show');
+        paymentModal.setAttribute('aria-hidden','true');
+      }
+      btnPayCancel.addEventListener('click', closePaymentModal);
+
+      function luhnCheck(num){
+        const s = num.replace(/\s+/g,'');
+        if(!/^\d+$/.test(s)) return false;
+        let sum = 0, alt = false;
+        for(let i = s.length - 1; i >= 0; i--){
+          let n = parseInt(s.charAt(i),10);
+          if(alt){ n *= 2; if(n > 9) n -= 9; }
+          sum += n; alt = !alt;
+        }
+        return sum % 10 === 0;
+      }
+
+      function validExpiry(v){
+        if(!/^\d{2}\/\d{2}$/.test(v)) return false;
+        const [mm, yy] = v.split('/').map(x => parseInt(x,10));
+        if(mm < 1 || mm > 12) return false;
+        const now = new Date();
+        const year = 2000 + yy;
+        const exp = new Date(year, mm);
+        return exp > now;
+      }
+
+      btnPayConfirm.addEventListener('click', () => {
+        const name = document.getElementById('payName').value.trim();
+        const number = document.getElementById('payNumber').value.replace(/\s+/g,'');
+        const exp = document.getElementById('payExp').value.trim();
+        const cvc = document.getElementById('payCvc').value.trim();
+
+        if(!name){ payMsg.textContent = 'Introduce el nombre del titular.'; return; }
+        if(!luhnCheck(number)){ payMsg.textContent = 'Número de tarjeta inválido (demo).'; return; }
+        if(!validExpiry(exp)){ payMsg.textContent = 'Fecha de expiración inválida.'; return; }
+        if(!/^\d{3,4}$/.test(cvc)){ payMsg.textContent = 'CVC inválido.'; return; }
+
+        payMsg.textContent = 'Procesando pago (simulado)...';
+        btnPayConfirm.disabled = true;
+
+        setTimeout(() => {
+          payMsg.textContent = 'Pago aprobado (simulado). Gracias por tu compra.';
+          // 🔥 GUARDAR COMPRA
+const session = localStorage.getItem(SESSION_KEY);
+if(session){
+  const cart = JSON.parse(localStorage.getItem('tv_cart_' + session) || '[]');
+  const historyKey = 'tv_orders_' + session;
+  const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+
+  const order = {
+    id: 'ORD-' + Date.now(),
+    items: cart,
+    total: cart.reduce((s,i)=>{
+      const p = PRODUCTS.find(x => x.id === i.id);
+      return s + (p ? p.price * i.qty : 0);
+    },0),
+    date: new Date().toLocaleString()
+  };
+
+  history.push(order);
+  localStorage.setItem(historyKey, JSON.stringify(history));
+}
+          
+          if(session) localStorage.setItem('tv_cart_' + session, JSON.stringify([]));
+          if(typeof updateCartCount === 'function') updateCartCount();
+          setTimeout(() => {
+            btnPayConfirm.disabled = false;
+            closePaymentModal();
+            alert('Pago simulado completado. Carrito vaciado.');
+          }, 900);
+        }, 1200);
+      });
+    })();
+
+    /* ---------------- Initialization ---------------- */
+    window.addEventListener('load', () => {
+      const session = getSession();
+      if(session){
+        const users = loadUsers();
+        const user = users[session] || { username: session.split('@')[0], email: session };
+        showCatalog(user);
+      } else {
+        document.getElementById('authPanel').style.display = 'block';
+        document.getElementById('catalogArea').style.display = 'none';
+        loginUser.focus();
+      }
+      renderProducts();
+      updateCartCount();
+    });
+
+    /* ---------------- Accessibility: trap focus for modals ---------------- */
+    document.addEventListener('focus', function(event){
+      if(productModal.classList.contains('show') && !productModal.contains(event.target)){
+        event.stopPropagation();
+        modalClose.focus();
+      }
+      if(contactModal.classList.contains('show') && !contactModal.contains(event.target)){
+        event.stopPropagation();
+        contactClose.focus();
+      }
+      const paymentModal = document.getElementById('paymentModal');
+      if(paymentModal && paymentModal.classList.contains('show') && !paymentModal.contains(event.target)){
+        event.stopPropagation();
+        document.getElementById('payName').focus();
+      }
+    }, true);
+
+    console.log('Demo TecnoVision cargado. Asistente y pago simulado activos.');
+  </script>
+</body>
+</html>
